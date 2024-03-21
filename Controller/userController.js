@@ -1,21 +1,23 @@
+const jwt = require('jsonwebtoken')
+
 const users = require('../Model/userSchema');
 
 
 
-exports.registerUser = async(req,res)=>{
-    
-const {name,address,gender,username,password} = req.body;
+exports.registerUser = async (req, res) => {
+
+    const { name, address, gender, username, password } = req.body;
 
 
 
-     try{
+    try {
 
-        const existingUser = await users.findOne({username});
+        const existingUser = await users.findOne({ username });
 
-        if(existingUser){
+        if (existingUser) {
             res.status(406).json("Username already exists, please login or create use another")
         }
-        else{
+        else {
             const newUser = new users({
                 name,
                 address,
@@ -27,8 +29,35 @@ const {name,address,gender,username,password} = req.body;
             res.status(200).json('User signup successfull')
         }
 
-     }
-      catch(err){
+    }
+    catch (err) {
         res.status(401).json(err)
-      }
+    }
+}
+
+
+exports.loginUser = async (req, res) => {
+    console.log(req.body)
+
+    const { username, password } = req.body;
+
+    try {
+        console.log("inside login")
+        const existingUser = await users.findOne({ username, password })
+
+        if (existingUser) {
+            const token = jwt.sign({ userId: existingUser._id }, process.env.SECRET_KEY);
+            console.log(token);
+            return res.status(200).json({token });
+        }
+        else {
+            res.status(406).json("Invalid username or Password");
+        }
+
+    }
+    catch (err) {
+        console.log(err)
+        res.status(401).json(err)
+
+    }
 }
